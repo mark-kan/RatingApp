@@ -1,5 +1,4 @@
 ﻿/// <autosync enabled="true" />
-/// <reference path="js/angucomplete.js" />
 /// <reference path="js/site.js" />
 /// <reference path="js/ui-bootstrap-tpls-0.9.0.js" />
 /// <reference path="lib/angular/angular.js" />
