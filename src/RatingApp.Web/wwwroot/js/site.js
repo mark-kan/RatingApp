@@ -1,6 +1,4 @@
-﻿// Write your Javascript code.
-
-
+﻿
 var app = angular.module('ratingApp', ['ngSanitize', 'ui.bootstrap', 'ui.select']);
 
 
@@ -8,10 +6,8 @@ var app = angular.module('ratingApp', ['ngSanitize', 'ui.bootstrap', 'ui.select'
 app.controller('ratingCtrl', function ($scope, $http) {
 
     $scope.itemArray = [];
-    //$scope.skill = $scope.result[0];
-
+ 
     $scope.search = function (val) {
-        console.log(val);
     
       if (val.length < 1) {
           $scope.itemArray = undefined;
@@ -24,10 +20,6 @@ app.controller('ratingCtrl', function ($scope, $http) {
         .then(function (response) {
             $scope.itemArray = response.data;
         });
-
- //       $scope.selected = { value: $scope.itemArray[0] };
- 
-         
     };
 
     $scope.onSkillSelect = function (skill) {
@@ -55,7 +47,6 @@ app.controller('ratingCtrl', function ($scope, $http) {
                 $scope.userSkills = response.data;
             }, function error(response) {
                 alert("Unable to add skill");
-                console.log("Error");
             });
     }
 
@@ -64,14 +55,12 @@ app.controller('ratingCtrl', function ($scope, $http) {
             'SkillId': userSkill.skill.skillId,
             'Level': level
         }).then (function(response) {
-            console.log("Skill level updated");
             userSkill.level = level;
         });
     }
 
     $scope.onDeleteUserSkill = function (userSkill) {
-
-        console.log("Delete skill: " + userSkill.skill.skillId);
+      
         $http({
             method: 'DELETE',
             url: '/Skills/UserSkills',
@@ -79,7 +68,6 @@ app.controller('ratingCtrl', function ($scope, $http) {
             ,
             headers: { 'Content-type': 'application/json' }
         }).then (function (response) {
-            console.log(response.data);
             $scope.getUserSkills();
         }, function(rejection){
             alert('Unable to remove skill');   
