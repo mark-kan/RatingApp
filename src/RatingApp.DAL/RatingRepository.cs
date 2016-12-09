@@ -4,16 +4,22 @@ namespace RatingApp.DAL
 {
     using Domain;
     using System.Collections.Generic;
-    using System;
+    using System.Threading.Tasks;
+    using Microsoft.EntityFrameworkCore;
+    using System.Linq;
 
     public interface IRatingRepository
     {
-        void AddSkill(string term);
-        IEnumerable<Skill> GetAll();
-        Skill Find(string key);
-        UserSkill Find(string userId, int skillId);
-        Skill Remove(string key);
-        void Update(string userSkill, int skillId);
+
+        Skill Find(int key);
+        Task<List<Skill>> Find(string searchTerm);
+        List<UserSkill> GetUserSkills(string userId);
+        UserSkill GetUserSkill(string userId, int skillId);
+        void DeleteUserSkill(UserSkill userSkill);
+        void UpdateUserSkill(UserSkill userSkill);
+        bool HasUserSkill(string userId, int skillId);
+        void AddSkill(Skill skill);
+        void AddUserSkill(UserSkill userSkill);
     }
 
     public class RatingRepository : IRatingRepository
@@ -27,36 +33,63 @@ namespace RatingApp.DAL
 
         }
 
-        public void AddSkill(string description)
+        public void AddSkill(Skill skill)
         {
-
+            _context.Skills.Add(skill);
+            _context.SaveChanges();
 
         }
 
-        public Skill Find(string key)
+        public Skill Find(int key)
         {
-            throw new NotImplementedException();
+            return _context.Skills.FirstOrDefault(e => e.SkillId == key);
         }
 
-        public UserSkill Find(string userId, int skillId)
+        public async Task<List<Skill>> Find(string searchTerm)
         {
-            throw new NotImplementedException();
+            return await _context.Skills.Where(data => data.SkillName.StartsWith(searchTerm.Trim())).ToListAsync();
+
         }
 
-        public IEnumerable<Skill> GetAll()
+        public bool HasUserSkill (string userId, int skillId)
         {
-            throw new NotImplementedException();
+            return _context.UserSkills.Any(p => p.SkillId == skillId && p.UserId == userId);
+
+        }
+     
+        public List<UserSkill> GetUserSkills (string userId) {
+
+            return _context.UserSkills.Include(p => p.Skill).OrderBy(p => p.Skill.SkillName).Where(u => u.UserId == userId).ToList();
         }
 
-        public Skill Remove(string key)
+       public void AddUserSkill (UserSkill userSkill)
         {
-            throw new NotImplementedException();
+            _context.UserSkills.Add(userSkill);
+            _context.SaveChanges();
         }
 
-        public void Update(string userSkill, int skillId)
-        {
-            throw new NotImplementedException();
+        public UserSkill GetUserSkill (string userId, int skillId)
+        {   
+            return _context.UserSkills.FirstOrDefault(p => p.SkillId == skillId && p.UserId == userId);
+
         }
+
+        public void UpdateUserSkill (UserSkill userSkill)
+        {
+
+            _context.UserSkills.Attach(userSkill);
+            _context.Entry(userSkill).State = EntityState.Modified;
+            _context.SaveChanges();
+
+        }
+
+        public void DeleteUserSkill (UserSkill userSkill)
+        {
+            _context.UserSkills.Remove(userSkill);
+            _context.SaveChanges();
+        }
+
+      
     }
 }
 

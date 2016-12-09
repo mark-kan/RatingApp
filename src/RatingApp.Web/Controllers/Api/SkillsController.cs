@@ -19,24 +19,22 @@ namespace RatingApp.Web.Controllers.Api
     public class SkillsController : Controller
     {
 
-        private RatingDBContext _context;
+       
+        private IRatingRepository _repo;
 
-        public SkillsController(RatingDBContext context)
+        public SkillsController(IRatingRepository repo)
         {
-            _context = context;
+           
+            _repo = repo;
         } 
       
-        [HttpGet]
-        public async Task<IEnumerable<Skill>> GetAll()
-        {
-            return await _context.Skills.ToListAsync();
-        }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public async Task<Skill> Get(int id)
+        public Skill Get(int id)
         {
-            return await _context.Skills.FirstOrDefaultAsync(e => e.SkillId == id);
+            return _repo.Find(id);
+            
         }
 
         //[Route("api/search/{value}")]
@@ -44,11 +42,9 @@ namespace RatingApp.Web.Controllers.Api
         [HttpPost]
         public async Task <JsonResult> Search([FromBody]SearchModel model)
         {
-            var result = await _context.Skills.Where(data => data.SkillName.StartsWith(model.SearchTerm.Trim())).ToListAsync();
+            var result = await _repo.Find(model.SearchTerm);
 
             if (result.Count==0 && !string.IsNullOrWhiteSpace(model.SearchTerm)){
-
-           
 
                     var skill = new Skill
                     {
@@ -62,19 +58,19 @@ namespace RatingApp.Web.Controllers.Api
         }
 
         [HttpGet]
-        public async Task<JsonResult> UserSkills() { 
+        public JsonResult UserSkills() { 
 
              var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             {
-                var userSkills = await _context.UserSkills.Include(p=> p.Skill).OrderBy(p=>p.Skill.SkillName).Where(u => u.UserId == userId).ToListAsync();
+                var userSkills = _repo.GetUserSkills(userId);
                 return Json(userSkills);
             }
            
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody]SkillAddModel model)
+        public IActionResult Add([FromBody]SkillAddModel model)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -84,9 +80,8 @@ namespace RatingApp.Web.Controllers.Api
                 return BadRequest();
 
             //Do not allow another set of skill and user in DB
-            if (await _context.UserSkills.AnyAsync(p => p.SkillId == skillId && p.UserId == userId))
+            if (_repo.HasUserSkill(userId, skillId))
             {
-
                 return BadRequest();
             }
 
@@ -97,17 +92,16 @@ namespace RatingApp.Web.Controllers.Api
                     {
                         SkillName = model.SkillName
                     };
-                    _context.Skills.Add(skill);
-                    await _context.SaveChangesAsync();
-                    skillId = skill.SkillId;
-                }
+                _repo.AddSkill(skill);
+                skillId = skill.SkillId;
+            }
 
             else
             {
                 skillId = int.Parse(model.SkillId);
                 if (skillId != 0)
                 {
-                    var skill = _context.Skills.FirstOrDefault(p => p.SkillId == skillId);
+                    var skill = _repo.Find(skillId);
                     skillId = skill.SkillId;
                 }
             }
@@ -120,30 +114,25 @@ namespace RatingApp.Web.Controllers.Api
                 Added = DateTime.Now
             };
 
-                _context.UserSkills.Add(userSkill);
-                await _context.SaveChangesAsync();
+            _repo.AddUserSkill(userSkill);
 
-                return Ok();
+            return Ok();
             
         }
 
         [HttpDelete]
-        public async Task<IActionResult> UserSkills([FromBody] UserSkillDeleteModel model)
+        public IActionResult UserSkills([FromBody] UserSkillDeleteModel model)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int skillIId = int.Parse(model.SkillId);
+            int skillId = int.Parse(model.SkillId);
 
-            var userSkill = await _context.UserSkills.FirstOrDefaultAsync(p => p.SkillId == skillIId && p.UserId == userId);
+            var userSkill = _repo.GetUserSkill(userId, skillId);
 
             if (userSkill != null)
             {
-
-           
-                    _context.UserSkills.Remove(userSkill);
-                    await _context.SaveChangesAsync();
-                    return Ok();
+                _repo.DeleteUserSkill(userSkill);
+                 return Ok();
                 
-
             }
             else
                 return BadRequest("Unable to remove skill");
@@ -151,7 +140,7 @@ namespace RatingApp.Web.Controllers.Api
 
         
 
-        public async Task<IActionResult> UserSkillLevel ([FromBody]UserSkillLevelModel model)
+        public IActionResult UserSkillLevel ([FromBody]UserSkillLevelModel model)
         {
 
             if (ModelState.IsValid)
@@ -159,13 +148,13 @@ namespace RatingApp.Web.Controllers.Api
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                int skillIId = int.Parse(model.SkillId);
+                int skillId = int.Parse(model.SkillId);
                 int level = int.Parse(model.Level);
 
                 if (level < 1)
                     return BadRequest();
 
-                var userSkill = await _context.UserSkills.Where(p => p.SkillId == skillIId && p.UserId == userId).FirstOrDefaultAsync();
+                var userSkill = _repo.GetUserSkill(userId, skillId);
 
                 if (userSkill == null) {
                     return NotFound();
@@ -173,7 +162,8 @@ namespace RatingApp.Web.Controllers.Api
                 else {
                     userSkill.Level = level;
                     userSkill.Updated = DateTime.Now;
-                    await _context.SaveChangesAsync();
+
+                     _repo.UpdateUserSkill(userSkill);
                 }
                 return Ok();
             }
