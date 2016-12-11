@@ -10,6 +10,8 @@ using RatingApp.Web.Data;
 using RatingApp.Web.Models;
 using RatingApp.Web.Services;
 using RatingApp.DAL;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace RatingApp.Web
 {
@@ -72,13 +74,16 @@ namespace RatingApp.Web
                 options.Cookies.ApplicationCookie.LoginPath = "/Account/LogIn";
                 options.Cookies.ApplicationCookie.LogoutPath = "/Account/LogOff";
                 options.Cookies.ApplicationCookie.CookieName = "RatingApp";
+
               
 
                 // User settings
                 options.User.RequireUniqueEmail = true;
             });
-           
+
             services.AddMvc();
+            services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
+            
 
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
@@ -109,6 +114,7 @@ namespace RatingApp.Web
 
             app.UseStaticFiles();
 
+            app.UseAngularXSRF();
             app.UseIdentity();
 
             // Add external authentication middleware below. To configure them please see http://go.microsoft.com/fwlink/?LinkID=532715

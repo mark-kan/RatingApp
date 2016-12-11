@@ -1,8 +1,11 @@
 ﻿
-var app = angular.module('ratingApp', ['ngSanitize', 'ui.bootstrap', 'ui.select']);
+var app = angular.module('ratingApp', ['ngSanitize', 'ui.bootstrap', 'ui.select'])
 
-
-
+app.config(['$httpProvider', function ($httpProvider) {
+    $httpProvider.defaults.headers.common = {
+        'X-XSRF-TOKEN': $('input[name="__RequestVerificationToken"]').val()
+    };
+}]);
 app.controller('ratingCtrl', function ($scope, $http) {
 
     $scope.itemArray = [];
@@ -40,7 +43,6 @@ app.controller('ratingCtrl', function ($scope, $http) {
     };
 
     $scope.getUserSkills = function () {
-        console.log("content loaded");
          
         $http.get('/Skills/UserSkills')
             .then(function (response) {
@@ -51,9 +53,12 @@ app.controller('ratingCtrl', function ($scope, $http) {
     }
 
     $scope.onSelectUserSkillLevel = function (userSkill, level) {
+        
         $http.post('/Skills/UserSkillLevel', {
             'SkillId': userSkill.skill.skillId,
-            'Level': level
+            'Level': level,
+           
+           
         }).then (function(response) {
             userSkill.level = level;
         });
@@ -64,9 +69,9 @@ app.controller('ratingCtrl', function ($scope, $http) {
         $http({
             method: 'DELETE',
             url: '/Skills/UserSkills',
-            data: {SkillId: userSkill.skill.skillId}
-            ,
+            data: {SkillId: userSkill.skill.skillId},
             headers: { 'Content-type': 'application/json' }
+          
         }).then (function (response) {
             $scope.getUserSkills();
         }, function(rejection){

@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using RatingApp.DAL;
 using RatingApp.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System;
-using Microsoft.EntityFrameworkCore;
 using RatingApp.Web.Controllers.Models;
 using System.Threading.Tasks;
 
@@ -14,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace RatingApp.Web.Controllers.Api
 {
-    
+
     [Authorize]
     public class SkillsController : Controller
     {
@@ -70,6 +68,7 @@ namespace RatingApp.Web.Controllers.Api
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Add([FromBody]SkillAddModel model)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -121,6 +120,7 @@ namespace RatingApp.Web.Controllers.Api
         }
 
         [HttpDelete]
+        [ValidateAntiForgeryToken]
         public IActionResult UserSkills([FromBody] UserSkillDeleteModel model)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -139,7 +139,8 @@ namespace RatingApp.Web.Controllers.Api
         }
 
         
-
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult UserSkillLevel ([FromBody]UserSkillLevelModel model)
         {
 

@@ -3,7 +3,8 @@
 
 
 <div ng-app="ratingApp" ng-controller="ratingCtrl">
-
+    @Html.AntiForgeryToken()
+    
     <ui-select ng-model="selected" class="ui-select" close-on-select="true">
         <ui-select-match>
             <span ng-bind="$select.selected.skillName"></span>
