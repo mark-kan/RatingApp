@@ -10,18 +10,18 @@
             <span ng-bind="$select.selected.skillName"></span>
         </ui-select-match>
         <ui-select-choices repeat="item in (itemArray | filter: $select.search) track by item.skillId" refresh="search($select.search)">
-            <span ng-bind="item.skillName" ng-click="onSkillSelect(item)"></span>
+            <span ng-bind="item.displayName" ng-click="onSkillSelect(item)"></span>
         </ui-select-choices>
     </ui-select>
 
-    </br>
+    <br/>
     <table class="userSkills" ng-init="getUserSkills()">
         <tr>
             <th style="width:200px;">Skill</th>
             <th colspan="6">Level</th>  
         </tr> 
-        <tr ng-repeat="userSkill in userSkills | orderBy : 'userSkill.skill.skillName' " ng-model="userSkill" ng-class-even="'evenRow'">
-            <td>{{userSkill.skill.skillName}}</td>
+        <tr ng-repeat="userSkill in userSkills | orderBy : 'userSkill.skillName' " ng-model="userSkill" ng-class-even="'evenRow'">
+            <td>{{userSkill.skillName}}</td>
             <td><button class="btn btn-sm" ng-class="{'selectedLevel' : userSkill.level == 1}" ng-click="onSelectUserSkillLevel(userSkill, 1)">1</button></td>
             <td><button class="btn btn-sm" ng-class="{'selectedLevel' : userSkill.level == 2}" ng-click="onSelectUserSkillLevel(userSkill, 2)">2</button></td>
             <td><button class="btn btn-sm" ng-class="{'selectedLevel' : userSkill.level == 3}" ng-click="onSelectUserSkillLevel(userSkill, 3)">3</button></td>

@@ -12,6 +12,9 @@ using RatingApp.Web.Services;
 using RatingApp.DAL;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using AutoMapper;
+using RatingApp.Domain;
+using RatingApp.Web.Controllers.Models;
 
 namespace RatingApp.Web
 {
@@ -94,6 +97,21 @@ namespace RatingApp.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+
+            Mapper.Initialize(config =>
+            {
+
+                //config.CreateMap<Skill, UserSkill>()
+                //.ForMember(dest => dest.Skill, opt => opt.MapFrom(src => src));
+
+                config.CreateMap<Skill, SkillResultModel>()
+
+                .ForMember(dest => dest.DisplayName, opt => opt.MapFrom(src => src.SkillName));
+                config.CreateMap<UserSkill, UserSkillResultModel>()
+                .ForMember(dest => dest.SkillName, opt => opt.MapFrom(src => src.Skill.SkillName));
+              
+            });
+
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 

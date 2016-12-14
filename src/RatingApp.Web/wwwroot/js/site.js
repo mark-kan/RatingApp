@@ -55,9 +55,8 @@ app.controller('ratingCtrl', function ($scope, $http) {
     $scope.onSelectUserSkillLevel = function (userSkill, level) {
         
         $http.post('/Skills/UserSkillLevel', {
-            'SkillId': userSkill.skill.skillId,
+            'SkillId': userSkill.skillId,
             'Level': level,
-           
            
         }).then (function(response) {
             userSkill.level = level;
@@ -69,7 +68,7 @@ app.controller('ratingCtrl', function ($scope, $http) {
         $http({
             method: 'DELETE',
             url: '/Skills/UserSkills',
-            data: {SkillId: userSkill.skill.skillId},
+            data: {SkillId: userSkill.skillId},
             headers: { 'Content-type': 'application/json' }
           
         }).then (function (response) {

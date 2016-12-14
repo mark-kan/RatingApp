@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System;
 using RatingApp.Web.Controllers.Models;
 using System.Threading.Tasks;
+using AutoMapper;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -41,18 +42,19 @@ namespace RatingApp.Web.Controllers.Api
         public async Task <JsonResult> Search([FromBody]SearchModel model)
         {
             var result = await _repo.Find(model.SearchTerm);
+            List<SkillResultModel> searchResult = new List<SkillResultModel>();
+           
+            searchResult = Mapper.Map<List<Skill>, List<SkillResultModel>>(result);
 
-            if (result.Count==0 && !string.IsNullOrWhiteSpace(model.SearchTerm)){
+            var skill = new SkillResultModel
+            {
+                SkillId = 0,
+                SkillName = model.SearchTerm,
+                DisplayName = $"Lägg till {model.SearchTerm}?"
+            };
+            searchResult.Add(skill);
 
-                    var skill = new Skill
-                    {
-                        SkillId = 0,
-                        SkillName = model.SearchTerm
-                    };
-                    result = new List<Skill>();
-                    result.Add(skill);
-            }
-            return Json(result);
+            return Json(searchResult);
         }
 
         [HttpGet]
@@ -62,7 +64,8 @@ namespace RatingApp.Web.Controllers.Api
 
             {
                 var userSkills = _repo.GetUserSkills(userId);
-                return Json(userSkills);
+                var userSkillsResult = Mapper.Map<List<UserSkill>, List<UserSkillResultModel>>(userSkills);
+                return Json(userSkillsResult);
             }
            
         }
@@ -71,51 +74,58 @@ namespace RatingApp.Web.Controllers.Api
         [ValidateAntiForgeryToken]
         public IActionResult Add([FromBody]SkillAddModel model)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            int skillId;
-
-            if (!int.TryParse(model.SkillId, out skillId))
-                return BadRequest();
-
-            //Do not allow another set of skill and user in DB
-            if (_repo.HasUserSkill(userId, skillId))
+            if (ModelState.IsValid)
             {
-                return BadRequest();
-            }
 
-            //New skill to be added
-            if (skillId == 0)
-            {
-             var skill = new Skill
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                int skillId;
+
+                if (!int.TryParse(model.SkillId, out skillId))
+                    return BadRequest();
+
+                //Do not allow another set of skill and user in DB
+                if (_repo.HasUserSkill(userId, skillId))
+                {
+                    return BadRequest();
+                }
+
+                //New skill to be added
+                if (skillId == 0)
+                {
+                    var skill = new Skill
                     {
                         SkillName = model.SkillName
                     };
-                _repo.AddSkill(skill);
-                skillId = skill.SkillId;
-            }
-
-            else
-            {
-                skillId = int.Parse(model.SkillId);
-                if (skillId != 0)
-                {
-                    var skill = _repo.Find(skillId);
+                    _repo.AddSkill(skill);
                     skillId = skill.SkillId;
                 }
+
+                else
+                {
+                    skillId = int.Parse(model.SkillId);
+                    if (skillId != 0)
+                    {
+                        var skill = _repo.Find(skillId);
+                        skillId = skill.SkillId;
+                    }
+                }
+
+
+                var userSkill = new UserSkill
+                {
+                    UserId = userId,
+                    SkillId = skillId,
+                    Added = DateTime.Now
+                };
+
+                _repo.AddUserSkill(userSkill);
+
+                return Ok();
+
             }
-            
-    
-            var userSkill = new UserSkill
-            {
-                UserId= userId,
-                SkillId = skillId,
-                Added = DateTime.Now
-            };
-
-            _repo.AddUserSkill(userSkill);
-
-            return Ok();
+            else
+                return BadRequest();
             
         }
 
